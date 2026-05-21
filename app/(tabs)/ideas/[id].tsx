@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   title: {
     ...Typography.title,
     fontSize: 22,
-    color: '#000', // Las tarjetas de ideas pastel se leen mejor siempre con texto oscuro
+    color: '#000',
     marginBottom: Spacing.md,
   },
   label: {
