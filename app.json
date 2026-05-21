@@ -2,7 +2,12 @@
   "expo": {
     "name": "noteflow",
     "slug": "noteflow",
+    "scheme": "noteflow",
     "version": "1.0.0",
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ],
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",

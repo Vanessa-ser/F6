@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 import { useColorScheme } from 'react-native';
 
-export default function ChecklistsLayout() {
+export default function ChecklistLayout() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
@@ -14,7 +14,7 @@ export default function ChecklistsLayout() {
         headerTintColor: isDark ? '#ffffff' : '#000000',
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Tareas' }} />
+     <Stack.Screen name="index" options={{ title: 'Tareas' }} />
       <Stack.Screen name="[id]" options={{ title: 'Detalle' }} />
     </Stack>
   );
