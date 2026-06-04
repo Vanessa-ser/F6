@@ -1,10 +1,4 @@
 {
-<<<<<<< HEAD
-  "dependencies": {
-    "@neondatabase/serverless": "^1.1.0",
-    "zod": "^4.4.3"
-  }
-=======
   "name": "noteflow",
   "version": "1.0.0",
   "main": "expo-router/entry",
@@ -42,5 +36,4 @@
     "typescript": "~5.9.2"
   },
   "private": true
->>>>>>> 4ae69bd01f54afb5ea2b5f17f6577e3c6221e2a4
 }
