@@ -18,7 +18,7 @@ export default function IdeasScreen() {
         <Text style={[styles.headerTitle, { color: colors.text }]}>Mis Ideas</Text>
         <Pressable
           style={[styles.addButton, { backgroundColor: colors.primary }]}
-          onPress={() => router.push('/nueva-nota')}
+          onPress={() => router.push('/nueva-nota?type=idea')}
         >
           <Ionicons name="add" size={24} color="#FFF" />
         </Pressable>

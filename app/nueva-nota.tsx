@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   ScrollView,
   Alert
 } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { z } from 'zod';
 import { useNotesStore } from '../store/notesStore';
 import { Palette, Spacing, Typography } from '../constants/theme';
@@ -35,10 +35,14 @@ type NoteType = 'note' | 'checklist' | 'idea';
 
 export default function NuevaNotaModal() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const colorScheme = useColorScheme();
   const colors = Palette[colorScheme === 'dark' ? 'dark' : 'light'];
 
-  const { addNote, addChecklist, addIdea } = useNotesStore();
+  const { addNote, addChecklist, addIdea, updateNote, updateChecklist, updateIdea, notes, checklists, ideas } = useNotesStore();
+
+  const isEditMode = params.edit === 'true';
+  const editId = typeof params.id === 'string' ? params.id : undefined;
 
   const [type, setType] = useState<NoteType>('note');
   const [title, setTitle] = useState('');
@@ -52,6 +56,42 @@ export default function NuevaNotaModal() {
   const [selectedColor, setSelectedColor] = useState('#FFD166');
   const ideaColors = ['#FF6B6B', '#4D96FF', '#6BCB77', '#FFD166', '#B983FF'];
 
+  // Cargar datos en modo edición
+  useEffect(() => {
+    if (isEditMode && editId) {
+      if (params.type === 'checklist') {
+        setType('checklist');
+        const checklist = checklists.find(c => c.id === editId);
+        if (checklist) {
+          setTitle(checklist.title);
+          setChecklistItems(checklist.items.map(item => item.text));
+        }
+      } else if (params.type === 'idea') {
+        setType('idea');
+        const idea = ideas.find(i => i.id === editId);
+        if (idea) {
+          setTitle(idea.title);
+          setTagInput(idea.tags.join(', '));
+          setSelectedColor(idea.color);
+        }
+      } else {
+        setType('note');
+        const note = notes.find(n => n.id === editId);
+        if (note) {
+          setTitle(note.title);
+          setContent(note.content);
+        }
+      }
+    } else {
+      // Modo nuevo: pre-seleccionar tipo
+      if (params.type === 'checklist') {
+        setType('checklist');
+      } else if (params.type === 'idea') {
+        setType('idea');
+      }
+    }
+  }, [params.type, params.edit, editId]);
+
   const handleAddChecklistItem = () => {
     if (newItemText.trim() === '') return;
     setChecklistItems([...checklistItems, newItemText.trim()]);
@@ -60,14 +100,19 @@ export default function NuevaNotaModal() {
 
   const handleSave = () => {
     setErrors({});
-    const id = Date.now().toString();
-    const createdAt = new Date().toISOString();
-    const updatedAt = createdAt;
-
+    
     try {
       if (type === 'note') {
         noteSchema.parse({ title, content });
-        addNote({ id, title, content, createdAt, updatedAt });
+        
+        if (isEditMode && editId) {
+          updateNote(editId, { title, content });
+        } else {
+          const id = Date.now().toString();
+          const createdAt = new Date().toISOString();
+          const updatedAt = createdAt;
+          addNote({ id, title, content, createdAt, updatedAt });
+        }
       } 
       else if (type === 'checklist') {
         checklistSchema.parse({ title });
@@ -77,13 +122,32 @@ export default function NuevaNotaModal() {
           return;
         }
 
-        const items = checklistItems.map((text, index) => ({
-          id: `${id}-${index}`,
-          text,
-          isCompleted: false,
-        }));
+        if (isEditMode && editId) {
+          // En modo edición, mantener los items existentes pero actualizar el título
+          const checklist = checklists.find(c => c.id === editId);
+          const items = checklist?.items.map((item, index) => ({
+            ...item,
+            text: checklistItems[index] || item.text,
+          })) || checklistItems.map((text, index) => ({
+            id: `${editId}-${index}`,
+            text,
+            isCompleted: false,
+          }));
+          
+          updateChecklist(editId, { title, items });
+        } else {
+          const id = Date.now().toString();
+          const createdAt = new Date().toISOString();
+          const updatedAt = createdAt;
+          
+          const items = checklistItems.map((text, index) => ({
+            id: `${id}-${index}`,
+            text,
+            isCompleted: false,
+          }));
 
-        addChecklist({ id, title, items, createdAt, updatedAt });
+          addChecklist({ id, title, items, createdAt, updatedAt });
+        }
       } 
       else if (type === 'idea') {
         ideaSchema.parse({ title, tagInput });
@@ -93,7 +157,14 @@ export default function NuevaNotaModal() {
           .map(t => t.trim())
           .filter(t => t !== '');
 
-        addIdea({ id, title, tags, color: selectedColor, createdAt, updatedAt });
+        if (isEditMode && editId) {
+          updateIdea(editId, { title, tags, color: selectedColor });
+        } else {
+          const id = Date.now().toString();
+          const createdAt = new Date().toISOString();
+          const updatedAt = createdAt;
+          addIdea({ id, title, tags, color: selectedColor, createdAt, updatedAt });
+        }
       }
 
       router.back();
@@ -114,7 +185,7 @@ export default function NuevaNotaModal() {
     <>
       <Stack.Screen
         options={{
-          headerTitle: 'Nueva Creación',
+          headerTitle: isEditMode ? 'Editar' : 'Nueva Creación',
           headerBackVisible: false,
         }}
       />

@@ -51,6 +51,18 @@ export default function NotaDetail() {
     );
   };
 
+  const handleEdit = () => {
+    if (!noteId) return;
+    router.push({
+      pathname: '/nueva-nota',
+      params: {
+        type: 'note',
+        edit: 'true',
+        id: noteId,
+      },
+    });
+  };
+
   if (!note) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -78,13 +90,23 @@ export default function NotaDetail() {
         Actualizada: {new Date(note.updatedAt).toLocaleString()}
       </Text>
 
-      <Pressable
-        style={[styles.deleteButton, { backgroundColor: colors.accent }]}
-        onPress={handleDelete}
-      >
-        <Ionicons name="trash-outline" size={20} color="#FFF" />
-        <Text style={styles.deleteButtonText}>Eliminar nota</Text>
-      </Pressable>
+      <View style={styles.buttonsContainer}>
+        <Pressable
+          style={[styles.editButton, { backgroundColor: colors.accent }]}
+          onPress={handleEdit}
+        >
+          <Ionicons name="pencil" size={20} color="#FFF" />
+          <Text style={styles.buttonText}>Editar</Text>
+        </Pressable>
+
+        <Pressable
+          style={[styles.deleteButton, { backgroundColor: colors.primary }]}
+          onPress={handleDelete}
+        >
+          <Ionicons name="trash-outline" size={20} color="#FFF" />
+          <Text style={styles.buttonText}>Eliminar</Text>
+        </Pressable>
+      </View>
     </ScrollView>
   );
 }
@@ -95,15 +117,29 @@ const styles = StyleSheet.create({
   title: { ...Typography.title, fontSize: 24, marginBottom: Spacing.md },
   body: { ...Typography.body, lineHeight: 24, marginBottom: Spacing.lg },
   date: { ...Typography.caption, marginBottom: Spacing.xs },
-  deleteButton: {
+  buttonsContainer: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginTop: Spacing.lg,
+  },
+  editButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.sm,
     padding: Spacing.md,
     borderRadius: 8,
-    marginTop: Spacing.lg,
   },
-  deleteButtonText: { ...Typography.body, color: '#FFF', fontWeight: '700' },
+  deleteButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    padding: Spacing.md,
+    borderRadius: 8,
+  },
+  buttonText: { ...Typography.body, color: '#FFF', fontWeight: '700' },
   notFound: { ...Typography.body, textAlign: 'center', marginBottom: Spacing.md },
 });
