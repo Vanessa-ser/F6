@@ -56,6 +56,18 @@ export default function ChecklistDetail() {
     );
   };
 
+  const handleEdit = () => {
+    if (!checklistId) return;
+    router.push({
+      pathname: '/nueva-nota',
+      params: {
+        type: 'checklist',
+        edit: 'true',
+        id: checklistId,
+      },
+    });
+  };
+
   
   const handleToggleItem = async (itemId: string) => {
     if (!checklistId) return;
@@ -141,13 +153,23 @@ export default function ChecklistDetail() {
         Creada: {new Date(checklist.createdAt).toLocaleString()}
       </Text>
 
-      <Pressable
-        style={[styles.deleteButton, { backgroundColor: colors.accent }]}
-        onPress={handleDelete}
-      >
-        <Ionicons name="trash-outline" size={20} color="#FFFFFF" />
-        <Text style={styles.deleteButtonText}>Eliminar Lista</Text>
-      </Pressable>
+      <View style={styles.buttonsContainer}>
+        <Pressable
+          style={[styles.editButton, { backgroundColor: colors.accent }]}
+          onPress={handleEdit}
+        >
+          <Ionicons name="pencil" size={20} color="#FFF" />
+          <Text style={styles.buttonText}>Editar</Text>
+        </Pressable>
+
+        <Pressable
+          style={[styles.deleteButton, { backgroundColor: colors.primary }]}
+          onPress={handleDelete}
+        >
+          <Ionicons name="trash-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.buttonText}>Eliminar</Text>
+        </Pressable>
+      </View>
     </ScrollView>
   );
 }
@@ -182,15 +204,29 @@ const styles = StyleSheet.create({
   listItemText: { ...Typography.body, flex: 1 },
   completedText: { textDecorationLine: 'line-through', opacity: 0.6 },
   date: { ...Typography.caption, marginTop: Spacing.md, marginBottom: Spacing.xs },
-  deleteButton: {
+  buttonsContainer: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    marginTop: Spacing.lg,
+  },
+  editButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.sm,
     padding: Spacing.md,
     borderRadius: 8,
-    marginTop: Spacing.lg,
   },
-  deleteButtonText: { ...Typography.body, color: '#FFF', fontWeight: '700' },
+  deleteButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    padding: Spacing.md,
+    borderRadius: 8,
+  },
+  buttonText: { ...Typography.body, color: '#FFF', fontWeight: '700' },
   notFound: { ...Typography.body, textAlign: 'center', marginBottom: Spacing.md },
 });

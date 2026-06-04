@@ -14,14 +14,15 @@ export default function NotasScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Cabecera personalizada */}
+
+
+
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>Mis Notas</Text>
         <Pressable 
           style={[styles.addButton, { backgroundColor: colors.primary }]}
-          onPress={() => router.push('/nueva-nota')}
-        >
-          <Ionicons name="add" size={24} color="#FFF" />
+          onPress={() => router.push('/nueva-nota?type=note')}>
+          <Ionicons name="add" size={24} color="#fff" />
         </Pressable>
       </View>
 

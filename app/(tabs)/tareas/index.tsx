@@ -24,7 +24,7 @@ export default function ChecklistsScreen() {
         <Text style={[styles.headerTitle, { color: colors.text }]}>Mis Tareas</Text>
         <Pressable
           style={[styles.addButton, { backgroundColor: colors.primary }]}
-          onPress={() => router.push('/nueva-nota')}
+          onPress={() => router.push('/nueva-nota?type=checklist')}
         >
           <Ionicons name="add" size={24} color="#FFF" />
         </Pressable>
