@@ -1,9 +1,18 @@
-export interface Note {
+export type NoteItem = Note | ChecklistNote | IdeaNote;
+
+export interface BaseNote {
   id: string;
   title: string;
-  content: string;
+  type: NoteType;
+  color?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Note extends BaseNote {
+  type: 'note';
+  content: string;
+  tags?: string[];
 }
 
 export interface ChecklistItem {
@@ -12,19 +21,15 @@ export interface ChecklistItem {
   isCompleted: boolean;
 }
 
-export interface ChecklistNote {
-  id: string;
-  title: string;
+export interface ChecklistNote extends BaseNote {
+  type: 'checklist';
   items: ChecklistItem[];
-  createdAt: string;
-  updatedAt: string;
 }
 
-export interface IdeaNote {
-  id: string;
-  title: string;
+export interface IdeaNote extends BaseNote {
+  type: 'idea';
   tags: string[];
   color: string;
-  createdAt: string;
-  updatedAt: string;
 }
+
+export type AnyNote = Note | ChecklistNote | IdeaNote;

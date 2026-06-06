@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, useColorScheme, ScrollView } from 'r
 import { useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { useNotesStore } from '../../../store/notesStore';
+import { logout } from '../../../lib/api';
 import { Palette, Spacing, Typography } from '../../../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -12,9 +13,22 @@ export default function IdeasScreen() {
   const colorScheme = useColorScheme();
   const colors = Palette[colorScheme === 'dark' ? 'dark' : 'light'];
 
+  const handleLogout = async () => {
+    await logout();
+    useNotesStore.setState({ notes: [], checklists: [], ideas: [] });
+    router.replace('/login');
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
+        <Pressable
+          style={[styles.logoutButton, { borderColor: colors.border }]}
+          onPress={handleLogout}
+        >
+          <Ionicons name="exit-outline" size={24} color={colors.text} />
+        </Pressable>
+
         <Text style={[styles.headerTitle, { color: colors.text }]}>Mis Ideas</Text>
         <Pressable
           style={[styles.addButton, { backgroundColor: colors.primary }]}
@@ -98,6 +112,15 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  logoutButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.sm,
   },
   card: {
     padding: Spacing.md,

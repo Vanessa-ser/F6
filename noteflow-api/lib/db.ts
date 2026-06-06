@@ -5,7 +5,7 @@ const sql = neon(process.env.DATABASE_URL!);
 
 // Ajustamos la función para usar sql.query() correctamente
 export async function query<T = unknown>(text: string, params?: any[]): Promise<T[]> {
-  // Ahora usamos el método .query tal como nos pedía el error
-  const result = await sql.query(text, params);
+  // CORRECCIÓN AQUÍ: usamos .query en lugar de llamar a sql directamente
+  const result = await sql.query(text, params as any); 
   return result as T[];
 }

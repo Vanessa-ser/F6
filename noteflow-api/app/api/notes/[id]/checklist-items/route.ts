@@ -1,14 +1,50 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
+import { z } from 'zod';
+import { getUserIdFromRequest } from '@/lib/auth';
 
-export async function GET(_: Request, { params }: { params: { id: string } }) {
-  const items = await query('SELECT * FROM checklist_items WHERE note_id = $1', [params.id]);
-  return NextResponse.json(items);
+const checklistItemSchema = z.object({
+  text: z.string().min(1),
+});
+
+export async function GET(request: Request, { params }: { params: { id: string } }) {
+  try {
+    const userId = getUserIdFromRequest(request);
+    const items = await query(
+      `SELECT ci.id, ci.note_id, ci.text, ci.is_completed AS "isCompleted"
+       FROM checklist_items ci
+       JOIN notes n ON n.id = ci.note_id
+       WHERE ci.note_id = $1 AND n.user_id = $2`,
+      [params.id, userId]
+    );
+    return NextResponse.json(items);
+  } catch (error) {
+    console.error('Error fetching checklist items:', error);
+    return NextResponse.json({ error: 'No autorizado o error interno' }, { status: 401 });
+  }
 }
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
-  const { text } = await request.json();
-  const [item] = await query('INSERT INTO checklist_items (note_id, text) VALUES ($1, $2) RETURNING *', 
-    [params.id, text]);
-  return NextResponse.json(item, { status: 201 });
+  const body = await request.json();
+  const result = checklistItemSchema.safeParse(body);
+  if (!result.success) {
+    return NextResponse.json({ errors: result.error.format() }, { status: 400 });
+  }
+
+  try {
+    const userId = getUserIdFromRequest(request);
+    const [note] = await query('SELECT id FROM notes WHERE id = $1 AND user_id = $2', [params.id, userId]);
+    if (!note) {
+      return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+    }
+
+    const [item] = await query(
+      'INSERT INTO checklist_items (note_id, text) VALUES ($1, $2) RETURNING id, note_id, text, is_completed AS "isCompleted"',
+      [params.id, result.data.text]
+    );
+    return NextResponse.json(item, { status: 201 });
+  } catch (error) {
+    console.error('Error saving checklist item:', error);
+    return NextResponse.json({ error: 'No autorizado o error interno' }, { status: 401 });
+  }
 }
