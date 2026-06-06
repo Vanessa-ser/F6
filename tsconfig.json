@@ -18,18 +18,20 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "ESNext",
-    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+    "ignoreDeprecations": "6.0"
   },
   "include": [
     "**/*.ts",
     "**/*.tsx"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "noteflow",
+    "noteflow-api"
   ],
   "extends": "expo/tsconfig.base"
 }

@@ -1,5 +1,21 @@
+
+DROP TABLE IF EXISTS note_tags;
+DROP TABLE IF EXISTS checklist_items;
+DROP TABLE IF EXISTS notes;
+DROP TABLE IF EXISTS users;
+
+
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email VARCHAR(255) NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 CREATE TABLE notes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   title VARCHAR(255) NOT NULL,
   content TEXT,
   type VARCHAR(50) NOT NULL CHECK (type IN ('note', 'checklist', 'idea')),

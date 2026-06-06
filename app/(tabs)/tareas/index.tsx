@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, useColorScheme } from 'react-native'
 import { useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { useNotesStore } from '../../../store/notesStore';
+import { logout } from '../../../lib/api';
 import { Palette, Spacing, Typography } from '../../../constants/theme';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -18,10 +19,24 @@ export default function ChecklistsScreen() {
   const colorScheme = useColorScheme();
   const colors = Palette[colorScheme === 'dark' ? 'dark' : 'light'];
 
+const handleLogout = async () => {
+    await logout();
+    useNotesStore.setState({ notes: [], checklists: [], ideas: [] });
+    router.replace('/login');
+  };
+
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}> 
       <View style={styles.header}>
+        <Pressable
+          style={[styles.logoutButton, { borderColor: colors.border }]}
+          onPress={handleLogout}
+        >
+          <Ionicons name="exit-outline" size={24} color={colors.text} />
+        </Pressable>
+
         <Text style={[styles.headerTitle, { color: colors.text }]}>Mis Tareas</Text>
+
         <Pressable
           style={[styles.addButton, { backgroundColor: colors.primary }]}
           onPress={() => router.push('/nueva-nota?type=checklist')}
@@ -124,6 +139,15 @@ const styles = StyleSheet.create({
   progressLabel: { ...Typography.caption, minWidth: 36, textAlign: 'right' },
   cardMeta: { ...Typography.caption, marginBottom: Spacing.xs },
   cardDate: { ...Typography.caption, textAlign: 'right' },
+  logoutButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.sm,
+  },
   emptyContainer: { alignItems: 'center', marginTop: 100 },
   emptyText: { ...Typography.body, marginTop: Spacing.sm },
 });
