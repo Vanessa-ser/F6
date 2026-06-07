@@ -98,7 +98,7 @@ export default function NuevaNotaModal() {
     setNewItemText('');
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setErrors({});
     
     try {
@@ -123,18 +123,32 @@ export default function NuevaNotaModal() {
         }
 
         if (isEditMode && editId) {
-          // En modo edición, mantener los items existentes pero actualizar el título
+          // En modo edición, actualizar textos de items existentes y añadir los nuevos
           const checklist = checklists.find(c => c.id === editId);
-          const items = checklist?.items.map((item, index) => ({
-            ...item,
-            text: checklistItems[index] || item.text,
-          })) || checklistItems.map((text, index) => ({
-            id: `${editId}-${index}`,
-            text,
-            isCompleted: false,
-          }));
-          
-          updateChecklist(editId, { title, items });
+          let items: { id: string; text: string; isCompleted: boolean }[] = [];
+
+          if (checklist) {
+            const updatedExisting = checklist.items.map((item, index) => ({
+              ...item,
+              text: checklistItems[index] ?? item.text,
+            }));
+
+            const extra = checklistItems.slice(checklist.items.length).map((text, idx) => ({
+              id: `${editId}-${checklist.items.length + idx}`,
+              text,
+              isCompleted: false,
+            }));
+
+            items = [...updatedExisting, ...extra];
+          } else {
+            items = checklistItems.map((text, index) => ({
+              id: `${editId}-${index}`,
+              text,
+              isCompleted: false,
+            }));
+          }
+
+          await updateChecklist(editId, { title, items });
         } else {
           const id = Date.now().toString();
           const createdAt = new Date().toISOString();
@@ -146,7 +160,7 @@ export default function NuevaNotaModal() {
             isCompleted: false,
           }));
 
-          addChecklist({ id, title, items, createdAt, updatedAt });
+          await addChecklist({ id, title, items, createdAt, updatedAt });
         }
       } 
       else if (type === 'idea') {
@@ -167,7 +181,7 @@ export default function NuevaNotaModal() {
         }
       }
 
-      router.back();
+      router.replace('/');
     } catch (err) {
       if (err instanceof z.ZodError) {
         const formattedErrors: Record<string, string> = {};
@@ -386,7 +400,7 @@ export default function NuevaNotaModal() {
               styles.backButton,
               { backgroundColor: colors.surface, borderColor: colors.border }
             ]}
-            onPress={() => router.back()}
+            onPress={() => router.replace('/')}
           >
             <Ionicons name="arrow-back" size={20} color={colors.text} />
             <Text style={[styles.backButtonText, { color: colors.text }]}>

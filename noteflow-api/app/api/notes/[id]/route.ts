@@ -38,15 +38,97 @@ export async function PATCH(
   try {
     const userId = getUserIdFromRequest(request);
     const body = await request.json();
-    
     const { id } = await params;
 
-    await query(
-      `UPDATE notes SET title = $1, updated_at = NOW() WHERE id = $2 AND user_id = $3`,
-      [body.title, id, userId]
+    // Actualizar campos simples en la tabla notes si vienen
+    const updates: string[] = [];
+    const values: any[] = [];
+    let idx = 1;
+
+    if (body.title !== undefined) {
+      updates.push(`title = $${idx++}`);
+      values.push(body.title);
+    }
+    if (body.content !== undefined) {
+      updates.push(`content = $${idx++}`);
+      values.push(body.content);
+    }
+    if (body.color !== undefined) {
+      updates.push(`color = $${idx++}`);
+      values.push(body.color);
+    }
+
+    if (updates.length > 0) {
+      // añadimos updated_at
+      updates.push(`updated_at = NOW()`);
+      values.push();
+      // construimos la consulta
+      values.push(id, userId);
+      await query(
+        `UPDATE notes SET ${updates.join(', ')} WHERE id = $${idx++} AND user_id = $${idx}`,
+        values
+      );
+    }
+
+    // Reemplazar tags si vienen
+    if (body.tags !== undefined) {
+      await query('DELETE FROM note_tags WHERE note_id = $1', [id]);
+      if (Array.isArray(body.tags) && body.tags.length) {
+        for (const tag of body.tags) {
+          await query('INSERT INTO note_tags (note_id, tag) VALUES ($1, $2)', [id, tag]);
+        }
+      }
+    }
+
+    // Reemplazar items de checklist si vienen
+    if (body.items !== undefined) {
+      // Borramos los items existentes para esta nota y usuario
+      await query(
+        `DELETE FROM checklist_items WHERE note_id = $1 AND EXISTS (
+           SELECT 1 FROM notes WHERE notes.id = $1 AND notes.user_id = $2
+         )`,
+        [id, userId]
+      );
+
+      if (Array.isArray(body.items) && body.items.length) {
+        for (const item of body.items) {
+          await query(
+            `INSERT INTO checklist_items (id, note_id, text, is_completed) VALUES (gen_random_uuid(), $1, $2, $3)`,
+            [id, item.text, Boolean(item.isCompleted)]
+          );
+        }
+      }
+    }
+
+    // Devolvemos la nota actualizada incluyendo items y tags
+    const [note] = await query(
+      `SELECT
+          n.id,
+          n.title,
+          n.type,
+          n.content,
+          n.color,
+          n.created_at AS "createdAt",
+          n.updated_at AS "updatedAt",
+          COALESCE(ci.items, '[]'::jsonb) AS items,
+          COALESCE(nt.tags, '[]'::jsonb) AS tags
+        FROM notes n
+        LEFT JOIN LATERAL (
+          SELECT jsonb_agg(jsonb_build_object('id', i.id, 'text', i.text, 'isCompleted', i.is_completed)) as items
+          FROM checklist_items i WHERE i.note_id = n.id
+        ) ci ON true
+        LEFT JOIN LATERAL (
+          SELECT jsonb_agg(t.tag) as tags
+          FROM note_tags t WHERE t.note_id = n.id
+        ) nt ON true
+        WHERE n.id = $1 AND n.user_id = $2
+        LIMIT 1`,
+      [id, userId]
     );
 
-    return NextResponse.json({ success: true });
+    if (!note) return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+
+    return NextResponse.json(note);
   } catch (error) {
     console.error("Error en PATCH:", error); // <-- MIRA ESTO EN LA TERMINAL DE TU BACKEND
     return NextResponse.json({ error: 'Error interno' }, { status: 500 });

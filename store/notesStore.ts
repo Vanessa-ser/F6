@@ -4,6 +4,7 @@ import {
   createChecklist,
   createNote,
   deleteNote as deleteNoteApi,
+  deleteChecklistItem as deleteChecklistItemApi,
   getNotes,
   toggleChecklistItem as apiToggleChecklistItem,
   updateNote as updateNoteApi,
@@ -26,6 +27,7 @@ interface NotesState {
   deleteNote: (id: string) => Promise<void>;
   deleteChecklist: (id: string) => Promise<void>;
   deleteIdea: (id: string) => Promise<void>;
+  deleteChecklistItem: (checklistId: string, itemId: string) => Promise<void>;
   toggleChecklistItem: (checklistId: string, itemId: string) => Promise<void>;
 }
 
@@ -99,23 +101,24 @@ export const useNotesStore = create<NotesState>()((set, get) => ({
 
   updateNote: async (id, updatedData) => {
     try {
-      const updated = await updateNoteApi(id, updatedData);
-      set((state) => ({ notes: state.notes.map((n) => (n.id === id ? { ...n, ...updated } : n)) }));
+      const updated = (await updateNoteApi(id, updatedData)) as Note;
+      set((state) => ({
+        notes: state.notes.map((n) =>
+          n.id === id && n.type === 'note' ? { ...n, ...updated } : n
+        ),
+      }));
     } catch (e) {
       set({ error: 'Error al actualizar nota' });
     }
   },
 
-updateChecklist: async (id, updatedData) => {
+  updateChecklist: async (id, updatedData) => {
     try {
-      // 1. Llamamos a la API enviando los datos actualizados (título, etc.)
-      await updateNoteApi(id, updatedData);
-      
-      // 2. Actualizamos el estado local una vez la API confirma el éxito
-      set((state) => ({ 
-        checklists: state.checklists.map((c) => 
-          c.id === id ? { ...c, ...updatedData } : c
-        ) 
+      const updated = (await updateNoteApi(id, updatedData)) as ChecklistNote;
+      set((state) => ({
+        checklists: state.checklists.map((c) =>
+          c.id === id ? { ...c, ...updated } : c
+        ),
       }));
     } catch (e) {
       set({ error: 'Error al actualizar checklist' });
@@ -125,8 +128,12 @@ updateChecklist: async (id, updatedData) => {
 
   updateIdea: async (id, updatedData) => {
     try {
-      const updated = await updateNoteApi(id, { title: updatedData.title, color: updatedData.color, tags: updatedData.tags });
-      set((state) => ({ ideas: state.ideas.map((i) => (i.id === id ? { ...i, ...updated } : i)) }));
+      const updated = (await updateNoteApi(id, { title: updatedData.title, color: updatedData.color, tags: updatedData.tags })) as IdeaNote;
+      set((state) => ({
+        ideas: state.ideas.map((i) =>
+          i.id === id && i.type === 'idea' ? { ...i, ...updated } : i
+        ),
+      }));
     } catch (e) {
       set({ error: 'Error al actualizar idea' });
     }
@@ -178,6 +185,24 @@ deleteChecklist: async (id) => {
       }));
     } catch (e) {
       set({ error: 'Error al actualizar tarea' });
+    }
+  },
+
+  deleteChecklistItem: async (checklistId, itemId) => {
+    try {
+      await deleteChecklistItemApi(itemId);
+      set((state) => ({
+        checklists: state.checklists.map((c) =>
+          c.id !== checklistId
+            ? c
+            : {
+                ...c,
+                items: c.items.filter((item) => item.id !== itemId),
+              }
+        ),
+      }));
+    } catch (e) {
+      set({ error: 'Error al eliminar tarea' });
     }
   },
 }));
