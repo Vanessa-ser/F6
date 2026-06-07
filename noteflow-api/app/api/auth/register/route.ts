@@ -18,16 +18,16 @@ export async function POST(request: Request) {
 
   const { email, password } = result.data;
 
-  const [existingUser] = await query('SELECT id FROM users WHERE email = $1', [email]);
+  const [existingUser] = (await query('SELECT id FROM users WHERE email = $1', [email])) as any;
   if (existingUser) {
     return NextResponse.json({ error: 'El correo ya está en uso' }, { status: 400 });
   }
 
   const passwordHash = hashSync(password, 10);
-  const [user] = await query(
+  const [user] = (await query(
     'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email',
     [email, passwordHash]
-  );
+  )) as any;
 
   const token = signJwt({ userId: user.id, email });
 

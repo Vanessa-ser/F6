@@ -72,7 +72,20 @@ export async function PATCH(
       values
     );
 
-    return NextResponse.json({ success: true });
+    // Recuperamos el ítem actualizado para devolver su estado al cliente
+    const rows = await query(
+      `SELECT id, text, is_completed FROM checklist_items WHERE id = $1 AND EXISTS (
+         SELECT 1 FROM notes WHERE notes.id = checklist_items.note_id AND notes.user_id = $2
+       )`,
+      [itemId, userId]
+    );
+
+    const row: any = rows[0];
+    if (!row) {
+      return NextResponse.json({ error: 'Ítem no encontrado' }, { status: 404 });
+    }
+
+    return NextResponse.json({ id: row.id, text: row.text, isCompleted: Boolean(row.is_completed) });
   } catch (error) {
     console.error('Error updating checklist item:', error);
     return NextResponse.json({ error: 'Error al actualizar' }, { status: 500 });

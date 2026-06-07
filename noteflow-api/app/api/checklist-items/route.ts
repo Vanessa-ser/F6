@@ -71,7 +71,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ 
-      ...checklist, 
+      ...(checklist as any),
       items 
     }, { status: 201 });
   } catch (error) {

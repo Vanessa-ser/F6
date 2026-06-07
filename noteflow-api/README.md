@@ -1,36 +1,115 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+﻿# Noteflow API
 
-## Getting Started
+Backend de Noteflow construido con Next.js App Router y PostgreSQL.
 
-First, run the development server:
+Este proyecto expone una API REST para que la app móvil no se conecte directamente a la base de datos.
+
+## Setup rápido
+
+1. Entra en `noteflow-api`.
+2. Instala dependencias:
+
+```bash
+npm install
+```
+
+3. Crea un archivo `.env.local` con estas variables:
+
+```env
+DATABASE_URL=
+JWT_SECRET=
+```
+
+4. Asegúrate de que `.env.local` está en `.gitignore`.
+5. Ejecuta el servidor:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+6. La API corre en `http://localhost:3000/api`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Qué contiene
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `lib/db.ts`: conexión segura a Neon/PostgreSQL.
+- `lib/auth.ts`: JWT, firma y validación de token.
+- `sql/schema.sql`: esquema de la base de datos.
+- `sql/queries.sql`: consulta relacional con JOIN para notas.
+- `docs/backend-teoria.md`: teoría de cliente-servidor, REST y SQL.
+- `docs/seguridad-api.md`: teoría de seguridad y variables de entorno.
 
-## Learn More
+## Endpoints
 
-To learn more about Next.js, take a look at the following resources:
+### Autenticación
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `POST /api/auth/register`
+  - Body: `{ email, password }`
+  - Response: `{ token, user: { id, email } }`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `POST /api/auth/login`
+  - Body: `{ email, password }`
+  - Response: `{ token, user: { id, email } }`
 
-## Deploy on Vercel
+### Salud
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `GET /api/health`
+  - Response: `{ ok: true, message: 'OK' }` o error si falta `DATABASE_URL`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Notas
+
+- `GET /api/notes`
+  - Devuelve todas las notas del usuario autenticado.
+  - Incluye `items` y `tags`.
+
+- `POST /api/notes`
+  - Crea una nota.
+  - Body: `{ title, type, content?, color?, tags?, items? }`
+  - Response: nota creada.
+
+- `GET /api/notes/[id]`
+  - Devuelve una nota específica.
+
+- `PATCH /api/notes/[id]`
+  - Actualiza una nota parcial.
+  - Response: nota actualizada.
+
+- `DELETE /api/notes/[id]`
+  - Borra una nota.
+  - Response: 204 No Content.
+
+### Checklist items
+
+- `GET /api/notes/[id]/checklist-items`
+  - Lista los ítems de una nota.
+
+- `POST /api/notes/[id]/checklist-items`
+  - Body: `{ text }`
+  - Crea un nuevo ítem.
+
+- `PATCH /api/checklist-items/[itemId]`
+  - Body: `{ isCompleted?, text? }`
+  - Actualiza un ítem.
+
+- `DELETE /api/checklist-items/[itemId]`
+  - Elimina un ítem.
+
+## Variables de entorno
+
+- `DATABASE_URL`: cadena de conexión a PostgreSQL.
+- `JWT_SECRET`: clave para firmar JWT.
+
+## Notas importantes
+
+- La app móvil debe enviar `Authorization: Bearer <token>` en las rutas protegidas.
+- Las consultas usan parámetros para evitar inyección SQL.
+- El backend no devuelve errores crudos de la base de datos al cliente.
+
+## Documentación
+
+- `docs/backend-teoria.md`
+- `docs/seguridad-api.md`
+
+## Archivos SQL
+
+- `sql/schema.sql`: crea las tablas.
+- `sql/queries.sql`: consulta con `LEFT JOIN` para notas, items y tags.

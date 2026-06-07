@@ -100,11 +100,11 @@ export default function NotaDetail() {
         </Pressable>
 
         <Pressable
-          style={[styles.deleteButton, { backgroundColor: colors.primary }]}
+          style={[styles.deleteButton, styles.deleteActionButton]}
           onPress={handleDelete}
         >
-          <Ionicons name="trash-outline" size={20} color="#FFF" />
-          <Text style={styles.buttonText}>Eliminar</Text>
+          <Ionicons name="trash-outline" size={20} color="#ad1a00" />
+          <Text style={styles.deleteButtonText}>Eliminar</Text>
         </Pressable>
       </View>
     </ScrollView>
@@ -140,6 +140,12 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     borderRadius: 8,
   },
+  deleteActionButton: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#ad1a00',
+  },
   buttonText: { ...Typography.body, color: '#FFF', fontWeight: '700' },
+  deleteButtonText: { ...Typography.body, color: '#ad1a00', fontWeight: '700' },
   notFound: { ...Typography.body, textAlign: 'center', marginBottom: Spacing.md },
 });

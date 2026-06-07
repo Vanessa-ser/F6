@@ -44,6 +44,8 @@ export type CreateChecklistPayload = {
   items: ChecklistItem[];
 };
 
+export type UpdateNotePayload = Partial<CreateNotePayload> | Partial<CreateChecklistPayload>;
+
 // Funciones de Auth
 export async function loginUser(email: string, password: string) {
   const response = await request<{ token: string }>('/auth/login', {
@@ -78,7 +80,7 @@ export async function createChecklist(data: CreateChecklistPayload): Promise<Che
   });
 }
 
-export async function updateNote(id: string, data: Partial<CreateNotePayload>): Promise<AnyNote> {
+export async function updateNote(id: string, data: UpdateNotePayload): Promise<AnyNote> {
   return request<AnyNote>(`/notes/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(data),

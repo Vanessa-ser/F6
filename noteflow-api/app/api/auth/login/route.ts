@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   }
 
   const { email, password } = result.data;
-  const [user] = await query('SELECT id, email, password_hash FROM users WHERE email = $1', [email]);
+  const [user] = (await query('SELECT id, email, password_hash FROM users WHERE email = $1', [email])) as any;
 
   if (!user || !compareSync(password, user.password_hash)) {
     return NextResponse.json({ error: 'Correo o contraseña incorrectos' }, { status: 401 });

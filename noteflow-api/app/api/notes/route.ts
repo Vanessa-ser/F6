@@ -79,16 +79,14 @@ export async function POST(request: Request) {
     
     const { id, title, type, content, color, tags, items, createdAt, updatedAt } = result.data;
 
-    // Ejecutamos la consulta y obtenemos el array de resultados
-    const results = await query<NoteResponse[]>(
+    // Ejecutamos la consulta y obtenemos el objeto de fila
+    const [note] = await query<NoteResponse>(
       `INSERT INTO notes (id, user_id, title, type, content, color, created_at, updated_at)
        VALUES (COALESCE($1::uuid, gen_random_uuid()), $2, $3, $4, $5, $6, $7, $8)
        RETURNING id, title, type, content, color, created_at AS "createdAt", updated_at AS "updatedAt"`,
       [id ?? null, userId, title, type, content ?? null, color ?? null, createdAt ?? null, updatedAt ?? null]
     );
 
-    // Accedemos al primer elemento de forma segura
-    const note = results[0];
     const createdNoteId = note.id;
     // 2. Insertar etiquetas
     if (tags?.length) {

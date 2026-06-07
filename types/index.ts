@@ -1,4 +1,4 @@
-export type NoteItem = Note | ChecklistNote | IdeaNote;
+export type NoteType = 'note' | 'checklist' | 'idea';
 
 export interface BaseNote {
   id: string;
